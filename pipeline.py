@@ -10,9 +10,19 @@ client = OpenAI()
 
 DATA_FILE = "stored_results.json"
 
+
+
 class PipelineRequest(BaseModel):
     email: str
     source: str
+
+
+
+@app.get("/")
+def root():
+    return {"message": "AI Pipeline is running"}
+
+
 
 def analyze_with_ai(text):
     try:
@@ -21,12 +31,13 @@ Analyze this comment in 2-3 sentences and classify sentiment as enthusiastic, cr
 
 {text}
 
-Respond in JSON:
+Respond ONLY in valid JSON format:
 {{
   "analysis": "...",
   "sentiment": "enthusiastic/critical/objective"
 }}
 """
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
@@ -42,6 +53,8 @@ Respond in JSON:
             "sentiment": "objective",
             "error": str(e)
         }
+
+
 
 def store_result(item):
     try:
@@ -60,19 +73,21 @@ def store_result(item):
     except:
         return False
 
+
+
 def send_notification(email):
-    # Mock notification (console log)
     print(f"Notification sent to: {email}")
     return True
 
-#@app.post("/pipeline")
-@app.api_route("/pipeline", methods=["GET", "POST"])
 
+
+@app.post("/pipeline")
 def run_pipeline(req: PipelineRequest):
 
     results = []
     errors = []
 
+    
     try:
         response = requests.get(
             "https://jsonplaceholder.typicode.com/comments?postId=1",
@@ -89,6 +104,7 @@ def run_pipeline(req: PipelineRequest):
             "errors": [f"API fetch failed: {str(e)}"]
         }
 
+    
     for comment in comments:
         try:
             text = comment["body"]
@@ -113,6 +129,7 @@ def run_pipeline(req: PipelineRequest):
             errors.append(f"Processing error: {str(e)}")
             continue
 
+    
     notification_status = False
     try:
         notification_status = send_notification(req.email)
