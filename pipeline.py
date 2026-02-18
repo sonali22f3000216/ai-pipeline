@@ -4,8 +4,18 @@ import json
 from fastapi import FastAPI
 from pydantic import BaseModel
 from openai import OpenAI
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 client = OpenAI()
 
 DATA_FILE = "stored_results.json"
